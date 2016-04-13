@@ -1,0 +1,84 @@
+
+>>>Now read graph from file /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.updated.edge
+num edge to be allocated: 5757694
+num_vertex to be allocated: 11515390
+num_vertex actually extracted:  8810644
+SOAP2_tag 1 kmersize 31
+edgefile /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.updated.edge
+5754638 edge sequences included.
+input edge extracted: 5757694
+print_vertex_degree..
+Degree distribution..
+-----------------------
+2 3787230 18259 7475 619 
+3787230 85870 429010 63677 29401 
+18259 429010 24590 7008 3568 
+7475 63677 7008 3316 1688 
+619 29401 3568 1688 996 
+-----------------------
+hashtablesize 0
+index vertex...
+kmer 31 hashw 0 shift 62
+index 0 hashv 0
+
+>>>Now Traverse the graph...
+Check at the beginning of graph traversal
+Peptides of lengths between 8 and 40 will be output
+16985304 peptides generated.
+Total time used: 5 min (1 min for computing proteins)
+
+>>>Now read graph from file /data_omics/wastewater/Assembly-hybrid/SD6-s2-63mer-k31-d1.updated.edge
+num edge to be allocated: 10199265
+num_vertex to be allocated: 20398532
+num_vertex actually extracted:  16675888
+SOAP2_tag 1 kmersize 31
+edgefile /data_omics/wastewater/Assembly-hybrid/SD6-s2-63mer-k31-d1.updated.edge
+10194601 edge sequences included.
+input edge extracted: 10199265
+print_vertex_degree..
+Degree distribution..
+-----------------------
+36 7429796 29983 4513 198 
+7429796 240996 643298 38672 10338 
+29983 643298 45602 16746 4762 
+4513 38672 16746 15160 5674 
+198 10338 4762 5674 6134 
+-----------------------
+hashtablesize 0
+index vertex...
+kmer 31 hashw 0 shift 62
+index 0 hashv 0
+
+>>>Now Traverse the graph...
+Check at the beginning of graph traversal
+Peptides of lengths between 8 and 40 will be output
+35292856 peptides generated.
+Total time used: 13 min (3 min for computing proteins)
+
+>>>Now read graph from file /data_omics/wastewater/Assembly-hybrid/SD7-s2-63mer-k31-d1.updated.edge
+num edge to be allocated: 12049648
+num_vertex to be allocated: 24099298
+num_vertex actually extracted:  16602586
+SOAP2_tag 1 kmersize 31
+edgefile /data_omics/wastewater/Assembly-hybrid/SD7-s2-63mer-k31-d1.updated.edge
+12041652 edge sequences included.
+input edge extracted: 12049648
+print_vertex_degree..
+Degree distribution..
+-----------------------
+38 6557447 43901 15983 1195 
+6557447 319964 1222286 144323 61119 
+43901 1222286 81748 26193 9292 
+15983 144323 26193 19556 6124 
+1195 61119 9292 6124 5554 
+-----------------------
+hashtablesize 0
+index vertex...
+kmer 31 hashw 0 shift 62
+index 0 hashv 0
+
+>>>Now Traverse the graph...
+Check at the beginning of graph traversal
+Peptides of lengths between 8 and 40 will be output
+33015326 peptides generated.
+Total time used: 13 min (4 min for computing proteins)

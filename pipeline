@@ -1,0 +1,50 @@
+#MG remove 500bp
+#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD6.500.contig
+#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD3.500.contig
+##python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1611149-SD5MG-s2-63mer-k31-d1.contig > MG_SRR1611149-SD5MG-s2-63mer-k31-d1.500.contig
+python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD7.500.contig
+
+#Hybrid remove 500bp
+#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.contig > /data/sujli/hybrid_SD3.500.contig
+##python2.7 remove_500bp.py /data_omics/wastewater/Assembly-hybrid/SD5-s2-63mer-k31-d1.contig > /data/sujli/hybrid_SD5-s2-63mer-k31-d1.500.contig
+#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-hybrid/SD6-s2-63mer-k31-d1.contig > /data/sujli/hybrid_SD6.500.contig
+#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-hybrid/SD7-s2-63mer-k31-d1.contig > /data/sujli/hybrid_SD7.500.contig
+
+#FragGeneScan on MG
+#FragGeneScan -s /data/sujli/MG_SD6.500.contig -o /data/sujli/MG_SD6.500 -w 0 -t complete
+#FragGeneScan -s /data/sujli/MG_SD3.500.contig -o /data/sujli/MG_SD3.500 -w 0 -t complete
+##FragGeneScan -s MG_SRR1611149-SD5MG-s2-63mer-k31-d1.500.contig -o MG_SRR1611149-SD5MG-s2-63mer-k31-d1.500 -w 0 -t complete
+#FragGeneScan -s /data/sujli/MG_SD7.500.contig -o /data/sujli/MG_SD7.500 -w 0 -t complete
+
+#FragGeneScan on hybrid
+#FragGeneScan -s /data/sujli/hybrid_SD3.500.contig -o /data/sujli/hybrid_SD3.500 -w 0 -t complete
+##FragGeneScan -s hybrid_SD5-s2-63mer-k31-d1.500.contig -o hybrid_SD5-s2-63mer-k31-d1.500 -w 0 -t complete
+#FragGeneScan -s /data/sujli/hybrid_SD6.500.contig -o /data/sujli/hybrid_SD6.500 -w 0 -t complete
+#FragGeneScan -s /data/sujli/hybrid_SD7.500.contig -o /data/sujli/hybrid_SD7.500 -w 0 -t complete
+
+#GraphBP on MG
+#DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig -o /data/sujli/MG_SD3.contig-pep.fasta
+#DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.contig -o /data/sujli/MG_SD6.contig-pep.fasta
+##DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-MG/SRR1611149-SD5MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1611149-SD5MG-s2-63mer-k31-d1.contig -o /data/sujli/MG_SRR1611149-SD5MG-s2-63mer-k31-d1.contig-pep.fasta
+#DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.contig -o /data/sujli/MG_SD7.contig-pep.fasta
+
+#GraphBP on Hybrid
+DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.contig -o /data/sujli/hybrid_SD3.contig-pep.fasta
+#DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-hybrid/SD5-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-hybrid/SD5-s2-63mer-k31-d1.contig -o /data/sujli/hybrid_SD5-s2-63mer-k31-d1.contig-pep
+DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-hybrid/SD6-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-hybrid/SD6-s2-63mer-k31-d1.contig -o /data/sujli/hybrid_SD6.contig-pep.fasta
+DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-hybrid/SD7-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-hybrid/SD7-s2-63mer-k31-d1.contig -o /data/sujli/hybrid_SD7.contig-pep.fasta
+
+#TRANSGeneScan
+##run_TransGeneScan.pl -in=/data_omics/wastewater/Assembly-TAG/SD3-trimmed-k31-TAG.fa -out=/data/sujli/SD3_TAG.transgenescan -thread=6
+##run_TransGeneScan.pl -in=/data_omics/wastewater/Assembly-TAG/SD6-trimmed-k31-TAG.fa -out=/data/sujli/SD6_TAG.transgenescan -thread=6
+##run_TransGeneScan.pl -in=/data_omics/wastewater/Assembly-TAG/SD7-trimmed-k31-TAG.fa -out=/data/sujli/SD7_TAG.transgenescan -thread=6
+
+#FragGeneScan on TAG
+#FragGeneScan -s /data_omics/wastewater/Assembly-TAG/SD3-trimmed-k31-TAG.fa -o /data/sujli/TAG_SD3 -w 0 -t complete
+#FragGeneScan -s /data_omics/wastewater/Assembly-TAG/SD6-trimmed-k31-TAG.fa -o /data/sujli/TAG_SD6 -w 0 -t complete
+#FragGeneScan -s /data_omics/wastewater/Assembly-TAG/SD7-trimmed-k31-TAG.fa -o /data/sujli/TAG_SD7 -w 0 -t complete
+
+#DBGraph second phase on MG
+#DBGraphPep2Pro -e /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig -p SD3.mg.combine.0.05.tsv -o /data/sujli/SD3_mg_DBGraphPep2Pro_5.fasta
+#DBGraphPep2Pro -e /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.contig -p SD6.mg.combine.0.05.tsv -o /data/sujli/SD6_mg_DBGraphPep2Pro_5.fasta
+#DBGraphPep2Pro -e /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.contig -p SD7.mg.combine.0.05.tsv -o /data/sujli/SD7_mg_DBGraphPep2Pro_5.fasta

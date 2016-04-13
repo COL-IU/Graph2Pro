@@ -1,0 +1,1 @@
+void GraphPepTrav::outnucseq(int index, ofstream &fp, char *seq, int length)
