@@ -20,6 +20,7 @@
 */
 #define numc(i, j) ((i) < (j)? (j)*((j)+1)/2+(i): (i)*((i)+1)/2+(j))
 #define LARGENUMBER 100000000
+#define MAX_CON_LEN 5000000
 #define MIN_CON_LEN 2000000
 #define MIN_OVERLAP 5
 #define MIN_LEG 1000

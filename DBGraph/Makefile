@@ -2,7 +2,7 @@
 #
 #objects := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 objects0 :=  smallapp.o seq.o 
-objects1 :=  soap.o seqgraph.o
+objects1 :=  soap.o FastG.o seqgraph.o
 objects2 :=  Graph2Pro.o
 objects3 :=  GraphPep2Pro.o
 

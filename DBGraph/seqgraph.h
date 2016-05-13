@@ -26,6 +26,7 @@ class seqgraph {
 		void set_kmersize(int inp) { kmersize = inp; set_maskv(); }
 		void set_maskv(void);
 		void loadsoap(bool SOAP2, char *edgefile, char *edgeseqfile);
+		void loadFastG(char *edgeseqfile);
 		void index_vertex(void);
 		void print_vertex_degree(void);
 };
