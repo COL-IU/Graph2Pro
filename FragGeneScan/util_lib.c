@@ -279,7 +279,7 @@ void get_rc_dna_indel(char *dna, char *dna1){
 }
 
 
-void get_protein(char *dna, char *protein,  int strand){
+void get_protein(char *dna, char *protein,  int strand, int whole_genome){
 
   int i;
   char codon_code[65] = {'K','N','K','N',
@@ -316,32 +316,50 @@ void get_protein(char *dna, char *protein,  int strand){
 			 'S','A','P','T',
 			 '*','E','Q','K','X'};
   int dna_len = strlen(dna);
-  int protein_len = dna_len/3;
 
   if (strand ==1){
-    
     for (i=0; i<dna_len; i+=3){
       protein[i/3] = codon_code[trinucleotide_pep(dna[i], dna[i+1], dna[i+2])];
     }
   }else{
-
+    int protein_len = dna_len/3;
     if (dna_len % 3 == 2){
       dna_len -= 2;
     }else if (dna_len % 3 == 1){
       dna_len -= 1;
     }
-	      
     for (i=0; i<dna_len; i+=3){
       protein[(dna_len-i)/3-1] = anti_codon_code[trinucleotide_pep(dna[i], dna[i+1], dna[i+2])];
       protein_len --;
     }
   }
-}
 
+  if(protein[strlen(protein) - 1] == '*') { //remove the ending *
+    protein[strlen(protein) - 1] = 0;
+  }
+
+  //alternative start codons still encode for Met
+  //E. coli uses 83% AUG (3542/4284), 14% (612) GUG, 3% (103) UUG and one or two others (e.g., an AUU and possibly a CUG)
+  //only consider two major alternative ones, GTG and TTG
+  if(whole_genome == 0) return; //short reads, skip
+  if(strand == 1) {
+  	int s = trinucleotide_pep(dna[0], dna[1], dna[2]); 
+	if(s == trinucleotide_pep('G', 'T', 'G') || s == trinucleotide_pep('T', 'T', 'G')){
+		protein[0] = 'M';
+	}
+  }
+  else {
+  	int s = trinucleotide_pep(dna[dna_len - 3], dna[dna_len - 2], dna[dna_len - 1]); 
+	if(s == trinucleotide_pep('C', 'A', 'C') || s == trinucleotide_pep('C', 'A', 'A')) {
+		protein[0] = 'M';
+	}
+  } 
+}
 
 void print_usage(){
 
-  printf("%s", "USAGE: ./FragGeneScan.pl -s [seq_file_name] -o [output_file_name] -w [1 or 0] -t [train_file_name]\n");
+  printf("%s", "USAGE: ./FragGeneScan.pl -s [seq_file_name] -o [output_file_name] -w [1 or 0] -t [train_file_name] (-p [thread_num])\n\n");
+  printf("%s", "       Mandatory parameters\n");
   printf("%s", "       [seq_file_name]:    sequence file name including the full path\n");
   printf("%s", "       [output_file_name]: output file name including the full path\n");
   printf("%s", "       [1 or 0]:           1 if the sequence file has complete genomic sequences\n");
@@ -356,4 +374,6 @@ void print_usage(){
   printf("%s", "                           [454_30] for 454 pyrosequencing reads with about 3% error rate\n");
   printf("%s", "                           [illumina_5] for Illumina sequencing reads with about 0.5% error rate\n");
   printf("%s", "                           [illumina_10] for Illumina sequencing reads with about 1% error rate\n\n");
+  printf("%s", "       Optional parameter\n");
+  printf("%s", "       [thread_num]:       the number of threads used by FragGeneScan; default is 1 thread.\n");
 }

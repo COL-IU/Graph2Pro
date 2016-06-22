@@ -4,37 +4,68 @@
 #include <math.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include "hmm.h"
 
+#include <pthread.h>
 
-int main (int argc, char **argv){
+#define ADD_LEN 1024
+#define STRINGLEN 4096
 
-  int i, j, c, num_seq;
+typedef struct thread_data
+{
+	FILE *out;
+	FILE *aa;
+	FILE *dna;
+	char *obs_head;
+	char *obs_seq;
+	int wholegenome;
+	int cg;
+	int format;
+	HMM *hmm;
+	TRAIN *train;
+} thread_data;
+
+void* thread_func(void *threadarr);
+
+int main (int argc, char **argv)
+{
+  clock_t start = clock();
+  int i, j, c, max;
   HMM hmm;
   char *obs_seq, *obs_head;
   TRAIN train;
   int wholegenome;
   int format=0;
   FILE *fp_out, *fp_aa, *fp_dna, *fp;
-  char hmm_file[4096] = "";
-  char aa_file[4096] = "";
-  char seq_file[4096] = "";
-  char out_file[4096] = "";
-  char dna_file[4096] = ""; 
-  char train_file[4096] = "";
-  char mstate_file[4096] = "";
-  char rstate_file[4096] = "";
-  char nstate_file[4096] = "";
-  char sstate_file[4096] = "";
-  char pstate_file[4096] = "";
-  char s1state_file[4096] = "";     /* stop codon of gene in - stand */
-  char p1state_file[4096] = "";
-  char dstate_file[4096] = "";
-  char train_dir[4096] = "";
+  char hmm_file[STRINGLEN] = "";
+  char out_header[STRINGLEN] = "";
+  char aa_file[STRINGLEN] = "";
+  char seq_file[STRINGLEN] = "";
+  char out_file[STRINGLEN] = "";
+  char dna_file[STRINGLEN] = ""; 
+  char train_file[STRINGLEN] = "";
+  char mstate_file[STRINGLEN] = "";
+  char rstate_file[STRINGLEN] = "";
+  char nstate_file[STRINGLEN] = "";
+  char sstate_file[STRINGLEN] = "";
+  char pstate_file[STRINGLEN] = "";
+  char s1state_file[STRINGLEN] = "";     /* stop codon of gene in - stand */
+  char p1state_file[STRINGLEN] = "";
+  char dstate_file[STRINGLEN] = "";
+  char train_dir[STRINGLEN] = "";
   int count=0;
-  char mystring[1000] = "";
+  int currcount = 0;
+  int total = 0;
+  char mystring[STRINGLEN] = "";
   int *obs_seq_len;
   int bp_count;  /* count the length of each line in input file */
+
+  int threadnum = 1;
+  int rc;
+
+  thread_data *threadarr;
+  char **lastline, **currline;
 
   strncpy(train_dir, argv[0], strlen(argv[0])-12);
   strcat(train_dir, "train/");
@@ -63,8 +94,7 @@ int main (int argc, char **argv){
     exit(EXIT_FAILURE);
   }
 
-  while ((c=getopt(argc, argv, "fs:o:w:t:")) != -1){
-
+  while ((c=getopt(argc, argv, "fs:o:w:t:p:")) != -1){
     switch (c){
     case 's':
       strcpy(seq_file, optarg);
@@ -82,8 +112,17 @@ int main (int argc, char **argv){
 	exit(EXIT_FAILURE);
       }
       break;
+    case 'p':
+      threadnum = atoi(optarg);
+      if (threadnum < 1){
+	fprintf(stderr, "ERROR: An incorrect value [%d] for the option -p was entered\n", threadnum);
+	print_usage();
+	exit(EXIT_FAILURE);
+      }
+      printf("Using %d threads.\n", threadnum);
+      break;
     case 'o':
-      strcpy(out_file, optarg);
+      strcpy(out_header, optarg);
       break;
     case 't':
       strcpy(train_file, optarg);
@@ -140,35 +179,50 @@ int main (int argc, char **argv){
     fprintf(stderr, "hmm file [%s] does not exist\n", hmm_file);
     exit(1);
   }
-
+  
   /* read all initial model */
   hmm.N=NUM_STATE;
   get_train_from_file(hmm_file, &hmm, mstate_file, rstate_file, nstate_file, sstate_file, pstate_file,s1state_file, p1state_file, dstate_file, &train);
- 
-  /* create output file name */
-  strcpy(aa_file, out_file);
-  strcat(aa_file, ".faa");
-  strcpy(dna_file, out_file);
-  strcat(dna_file, ".ffn");
 
-  remove (out_file);
-  remove (aa_file);
-  remove (dna_file);
+  // Initialize thread data structure
+  threadarr = (thread_data*)malloc(sizeof(thread_data) * threadnum);
+  memset(threadarr, '\0', sizeof(thread_data) * threadnum);
+  for (i = 0; i < threadnum; i++)
+  {
+    if(threadnum > 1) sprintf(mystring, "%s.out.tmp.%d", out_header, i);
+    else sprintf(mystring, "%s.out", out_header); 
+    threadarr[i].out = fopen(mystring, "w");
+    if(threadnum > 1) sprintf(mystring, "%s.faa.tmp.%d", out_header, i);
+    else sprintf(mystring, "%s.faa", out_header);
+    threadarr[i].aa = fopen(mystring, "w");
+    if(threadnum > 1) sprintf(mystring, "%s.ffn.tmp.%d", out_header, i);
+    else sprintf(mystring, "%s.ffn", out_header);
+    threadarr[i].dna = fopen(mystring, "w");
 
-  fp_aa = fopen (aa_file , "w");
-  fp_out = fopen (out_file , "w");
-  fp_dna = fopen (dna_file , "w");
+    threadarr[i].hmm = (HMM*)malloc(sizeof(HMM));
+    memcpy(threadarr[i].hmm, &hmm, sizeof(HMM));
+    threadarr[i].train = (TRAIN*)malloc(sizeof(TRAIN));
+    memcpy(threadarr[i].train, &train, sizeof(TRAIN));
+
+    //threadarr[i].hmm->N=NUM_STATE;
+    //get_train_from_file(hmm_file, threadarr[i].hmm, mstate_file, rstate_file, nstate_file, sstate_file, pstate_file,s1state_file, p1state_file, dstate_file, threadarr[i].train);
+
+    threadarr[i].wholegenome = wholegenome;
+    threadarr[i].format = format;
+  }
+
+  pthread_t *thread;
+  thread = (pthread_t*)malloc(sizeof(thread) * threadnum);
+  memset(thread, '\0', sizeof(thread) * threadnum);
+  void *status;
   fp = fopen (seq_file, "r");
-
   while ( fgets (mystring , sizeof mystring , fp) ){
     if (mystring[0] == '>'){
       count++;
     }
   }
-  num_seq = count;
-  obs_seq_len = (int *)malloc(num_seq * sizeof(int));
-  printf("no. of seqs: %d\n", num_seq);
-
+  obs_seq_len = (int *)malloc(count * sizeof(int));
+  printf("no. of seqs: %d\n", count);  
 
   i = 0;
   count = 0;
@@ -181,7 +235,7 @@ int main (int argc, char **argv){
       }
       i = 0;
     }else{
-      bp_count = strlen(mystring)-1;
+      bp_count = strlen(mystring);
       while(mystring[bp_count-1] == 10 || mystring[bp_count-1]==13){
 	bp_count --;
       }
@@ -191,64 +245,310 @@ int main (int argc, char **argv){
   }
   obs_seq_len[count] = i;
 
-  count=-1;
   rewind(fp);
-  j ==0;
+  total = 0;
+  count = 0;
+  j = 0;
 
-  while ( fgets (mystring , sizeof mystring  , fp) ){
+  while (!(feof(fp)))
+  {
+    memset(mystring, '\0', sizeof mystring);
+    fgets (mystring , sizeof mystring  , fp);
+    bp_count = strlen(mystring);
+    while(mystring[bp_count - 1] == 10 || mystring[bp_count - 1]==13){
+      //mystring[bp_count - 1] = 0;
+      bp_count --;
+    }
 
-    if (mystring[0] == '>'){
-
-      if (count>=0 && j>0){
-
- 	get_prob_from_cg(&hmm, &train, obs_seq);
-
- 	if (strlen(obs_seq)>70){
-	  viterbi(&hmm, obs_seq, fp_out, fp_aa, fp_dna, obs_head, wholegenome, format);
+    if (mystring[0] == '>' || feof(fp)){
+      if (feof(fp))
+      {
+        memcpy(threadarr[currcount].obs_seq + j, mystring, bp_count);
+        j += bp_count;
+        //max = appendSeq(mystring, &(threadarr[currcount].obs_seq), max);
+      }
+      if ((count > 0 && count % threadnum == 0) || feof(fp))
+      {
+        // Deal with the thread
+	for (i = 0; i < count; i++)
+	{
+	  rc = pthread_create(&thread[i], NULL, thread_func, (void*)&threadarr[i]);
+	  if (rc)
+	  {
+	    printf("Error: Unable to create thread, %d\n", rc);
+	    exit(-1);
+	  }
+        }
+	for (i = 0; i < count; i++)
+	{
+	  rc = pthread_join(thread[i], &status);
+	  if (rc)
+	  {
+	    printf("Error: Unable to join threads, %d\n", rc);
+	    exit(-1);
+	  }
 	}
+	for (i = 0; i < count; i++)
+	{
+	  free(threadarr[i].obs_head);
+	  free(threadarr[i].obs_seq);
+          threadarr[i].obs_head = NULL;
+          threadarr[i].obs_seq = NULL;
+	}
+
+	count = 0;
       }
 
-      bp_count = strlen(mystring)-1;
-      while(mystring[bp_count-1] == 10 || mystring[bp_count-1]==13){
-	bp_count --;
+      if (!(feof(fp)))
+      {
+        threadarr[count].obs_head = (char *)malloc((bp_count+1) * sizeof(char));
+        memset(threadarr[count].obs_head, 0, (bp_count+1) * sizeof(char));
+        memcpy(threadarr[count].obs_head, mystring, bp_count);
+        //threadarr[count].obs_seq = NULL;
+        threadarr[count].obs_seq = (char*)malloc((obs_seq_len[total] + 1) * sizeof(char));
+        memset(threadarr[count].obs_seq, '\0', (obs_seq_len[total] + 1) * sizeof(char));
+        total++;
+        currcount = count;
+        count++;
+        j = 0;
+        max = 0;
       }
-
-      obs_head = (char *)malloc((bp_count+1) * sizeof(char));
-      memset(obs_head, 0, (bp_count+1) * sizeof(char));
-      memcpy(obs_head, mystring, bp_count);
-
-      if (count== -1 || (count>=0 && j>0)){
-	count++;
-	obs_seq = (char *)malloc(obs_seq_len[count] * sizeof(char) + 1);
-	memset(obs_seq, 0, obs_seq_len[count] * sizeof(char) + 1);
-      }
-      j = 0;
 
     }else{
-      bp_count = strlen(mystring)-1;
-      while(mystring[bp_count-1] == 10 || mystring[bp_count-1]==13){
-	bp_count --;
-      }
-      memcpy(obs_seq+j, mystring, bp_count);
+      memcpy(threadarr[currcount].obs_seq + j, mystring, bp_count);
       j += bp_count;
+      //max = appendSeq(mystring, &(threadarr[currcount].obs_seq), max);
+    }
+    if (feof(fp))
+    {
+      break;
     }
   }
-
-  if (count>=0){
-
-    get_prob_from_cg(&hmm, &train, obs_seq);
-
-    if (strlen(obs_seq)>70){
-      viterbi(&hmm, obs_seq, fp_out, fp_aa, fp_dna, obs_head, wholegenome, format);
-    }
+  for (i = 0; i < threadnum; i++)
+  {
+    fclose(threadarr[i].out);
+    fclose(threadarr[i].aa);
+    fclose(threadarr[i].dna);
   }
+
+  if(threadnum > 1) {
+    /* create output file name */
+    strcpy(aa_file, out_header);
+    strcat(aa_file, ".faa");
+    strcpy(dna_file, out_header);
+    strcat(dna_file, ".ffn");
+    strcpy(out_file, out_header);
+    strcat(out_file, ".out");
+
+    remove (out_file);
+    remove (aa_file);
+    remove (dna_file);
+
+    fp_aa = fopen (aa_file , "w");
+    fp_out = fopen (out_file , "w");
+    fp_dna = fopen (dna_file , "w");
+
+    lastline = (char**)malloc(sizeof(char*) * threadnum);
+    memset(lastline, '\0', sizeof(char*) * threadnum);
+    currline = (char**)malloc(sizeof(char*) * threadnum);
+    memset(currline, '\0', sizeof(char*) * threadnum);
+    for (i = 0; i < threadnum; i++)
+    {
+      sprintf(mystring, "%s.out.tmp.%d", out_header, i);
+      threadarr[i].out = fopen(mystring, "r");
+      sprintf(mystring, "%s.faa.tmp.%d", out_header, i);
+      threadarr[i].aa = fopen(mystring, "r");
+      sprintf(mystring, "%s.ffn.tmp.%d", out_header, i);
+      threadarr[i].dna = fopen(mystring, "r");
+
+      lastline[i] = (char*)malloc(sizeof(char) * (STRINGLEN + 1));
+      memset(lastline[i], '\0', sizeof(char) * (STRINGLEN + 1));
+      currline[i] = (char*)malloc(sizeof(char) * (STRINGLEN + 1));
+      memset(currline[i], '\0', sizeof(char) * (STRINGLEN + 1));
+    }
+
+    // Organize out file
+    while (1)
+    {
+      j = 0;
+      for (i = 0; i < threadnum; i++)
+      {
+        if (lastline[i][0] != '\0')
+        {
+          fputs(lastline[i], fp_out);
+          lastline[i][0] = '\0';
+        }
+        while(fgets(currline[i], STRINGLEN, threadarr[i].out))
+        {
+          if (currline[i][0] == '>')
+          {
+            memcpy(lastline[i], currline[i], strlen(currline[i]) + 1);
+            break;
+          }
+          else
+          {
+            fputs(currline[i], fp_out);
+          }
+        }
+        if (feof(threadarr[i].out))
+        {
+          j++;
+        }
+      }
+      if (j == threadnum)
+      {
+        break;
+      }
+    }
+    // Organize faa file
+    for (i = 0; i < threadnum; i++)
+    {
+      lastline[i][0] = '\0';
+    }
+    while (1)
+    {
+      j = 0;
+      for (i = 0; i < threadnum; i++)
+      {
+        if (lastline[i][0] != '\0')
+        {
+          fputs(lastline[i], fp_aa);
+          lastline[i][0] = '\0';
+        }
+        while(fgets(currline[i], STRINGLEN, threadarr[i].aa))
+        {
+          if (currline[i][0] == '>')
+          {
+            memcpy(lastline[i], currline[i], strlen(currline[i]) + 1);
+            break;
+          }
+          else
+          {
+            fputs(currline[i], fp_aa);
+          }
+        }
+        if (feof(threadarr[i].aa))
+        {
+          j++;
+        }
+      }
+      if (j == threadnum)
+      {
+        break;
+      }
+    }
+
+    // Organize dna file
+    for (i = 0; i < threadnum; i++)
+    {
+      lastline[i][0] = '\0';
+    }
+    while (1)
+    {
+      j = 0;
+      for (i = 0; i < threadnum; i++)
+      {
+        if (lastline[i][0] != '\0')
+        {
+          fputs(lastline[i], fp_dna);
+          lastline[i][0] = '\0';
+        }
+        while(fgets(currline[i], STRINGLEN, threadarr[i].dna))
+        {
+          if (currline[i][0] == '>')
+          {
+            memcpy(lastline[i], currline[i], strlen(currline[i]) + 1);
+            break;
+          }
+          else
+          {
+            fputs(currline[i], fp_dna);
+          }
+        }
+        if (feof(threadarr[i].dna))
+        {
+          j++;
+        }
+      }
+      if (j == threadnum)
+      {
+        break;
+      }
+    }
+
+    for (i = 0; i < threadnum; i++)
+    {
+      fclose(threadarr[i].out);
+      fclose(threadarr[i].aa);
+      fclose(threadarr[i].dna);
+      sprintf(mystring, "%s.out.tmp.%d", out_header, i);
+      remove(mystring);
+      sprintf(mystring, "%s.faa.tmp.%d", out_header, i);
+      remove(mystring);
+      sprintf(mystring, "%s.ffn.tmp.%d", out_header, i);
+      remove(mystring);
+      free(threadarr[i].hmm);
+      free(threadarr[i].train);
+      free(lastline[i]);
+      free(currline[i]);
+    }
+    free(threadarr);
+    free(lastline);
+    free(currline);
   
-  free(obs_seq_len);
-  free(obs_head);
-  fclose(fp_out);
-  fclose(fp_aa);
-  fclose(fp_dna);
-  fclose(fp);
+    free(obs_seq_len);
+    //free(obs_head);
+    fclose(fp_out);
+    fclose(fp_aa);
+    fclose(fp_dna);
+    fclose(fp);
+  }
+  clock_t end = clock();
+  printf("Clock time used (by %d threads) = %.2f mins\n", threadnum, (end - start) / (60.0 * CLOCKS_PER_SEC));
 }
 
+
+void* thread_func(void *threadarr)
+{
+  thread_data *d;
+  d = (thread_data*)threadarr;
+  d->cg = get_prob_from_cg(d->hmm, d->train, d->obs_seq); //cg - 26 Ye April 16, 2016
+  if (strlen(d->obs_seq)>70){
+    viterbi(d->hmm, d->train, d->obs_seq, d->out, d->aa, d->dna, d->obs_head, d->wholegenome, d->cg, d->format);
+  }
+}
+
+int appendSeq(char *input, char **seq, int input_max)
+{
+	int len, inputlen, max;
+	char *tmp;
+
+	max = input_max;
+	if (*seq != NULL)
+	{
+		len = strlen(*seq);
+	}
+	else
+	{
+		len = 0;
+	}
+	inputlen = strlen(input);
+	if ((len + inputlen) >= max)
+	{
+		while ((len + inputlen) >= max)
+		{
+			max += ADD_LEN;
+		}
+		tmp = (char*)malloc(sizeof(char) * max);
+		memset(tmp, '\0', sizeof(char) * max);
+		if (*seq != NULL)
+		{
+			memcpy(tmp, *seq, len);
+		}
+		free(*seq);
+		*seq = tmp;
+	}
+	strcat(*seq, input);
+	return max;
+}
 

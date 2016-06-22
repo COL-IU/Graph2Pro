@@ -144,7 +144,7 @@ void GraphPepTrav::pep2edgemap(void )
 	pep_edgemap = new EDGEMAP[num_edge];
 
 /*
-i = 1423660;
+i = 1583040;
 printf("edge %d length %d\n", i, edge[i].length);
 for(j = 158; j < edge[i].length - 2; j += 3)	{
 	l = trans_codon2aa(&(edge[i].seq[j]), 3, tmppep);
@@ -246,8 +246,10 @@ void GraphPepTrav::sort_edgemap(void )
 	for(i = 0; i < num_edge; i ++)	{
 		for(j = 0; j < 3; j ++)	{
 /*
+if(i == 1583040)	{
 printf("edge %d length %d frame %d num_id_pep %d\n", i, edge[i].length, j, pep_edgemap[i].num_id_pep[j]);
 getchar();
+}
 */
 			for(k = 0; k < pep_edgemap[i].num_id_pep[j] - 1; k ++)	{
 				for(l = k + 1; l < pep_edgemap[i].num_id_pep[j]; l ++)	{
@@ -276,8 +278,7 @@ getchar();
 					   id_peptides[pep_edgemap[i].id_pep_index[j][k]].end_edge_offset >=
 						 id_peptides[pep_edgemap[i].id_pep_index[j][l]].end_edge_offset)	{
 							id_peptides[pep_edgemap[i].id_pep_index[j][l]].label = 1;	// peptide l is fully contained in peptide k
-					}
-					if(id_peptides[pep_edgemap[i].id_pep_index[j][k]].beg_edge_offset >=
+					} else if(id_peptides[pep_edgemap[i].id_pep_index[j][k]].beg_edge_offset >=
 						 id_peptides[pep_edgemap[i].id_pep_index[j][l]].beg_edge_offset &&
 					   id_peptides[pep_edgemap[i].id_pep_index[j][k]].end_edge_offset <=
 						 id_peptides[pep_edgemap[i].id_pep_index[j][l]].end_edge_offset)	{
@@ -304,8 +305,15 @@ void GraphPepTrav::ConnectMapppedPeptides(void )
 	for(i = 0; i < num_edge; i ++)	{
 		for(j = 0; j < 3; j ++)		{		// for each frame 1, 2 and 3
 /*
-if(i == 1574368)	{
+if(i == 1571067)	{
 printf("edge %d length %d frame %d num_id_pep %d\n", i, edge[i].length, j, pep_edgemap[i].num_id_pep[j]);
+}
+*/
+/*
+for(k = 0; k < pep_edgemap[i].num_id_pep[j]; k ++)	{
+if(i == 1571067)	{
+printf("ext edge %d length %d index %d label %d\n", i, edge[i].length, pep_edgemap[i].id_pep_index[j][k], id_peptides[pep_edgemap[i].id_pep_index[j][k]].label);
+}
 }
 */
 			for(k = 0; k < pep_edgemap[i].num_id_pep[j] - 1; k ++)	{
@@ -334,7 +342,7 @@ printf("edge %d length %d frame %d num_id_pep %d\n", i, edge[i].length, j, pep_e
 					continue;
 				}
 /*
-if(i == 1574368)	{
+if(i == 1571067)	{
 printf("id_peptide_pointer %d index %d %d %d %d, next_id_peptide_pointer %d index %d %d %d %d\n",
 	pep_edgemap[i].id_pep_index[j][k], id_peptide_pointer -> beg_edge_index, id_peptide_pointer -> beg_edge_offset,
 	id_peptide_pointer -> end_edge_index, id_peptide_pointer -> end_edge_offset,
@@ -381,6 +389,11 @@ if(len_tmpseq > max_length - 3)	{
 							len_tmpseq = appendpep(tmpseq, len_tmpseq, tmppep, l);
 						}
 					}
+/*
+if(i == 1583040)	{
+	printf("m %d edge length %d next_id %d\n", m, edge[i].length, id_peptide_pointer -> next_id);
+}
+*/
 					if(m < edge[i].length && id_peptide_pointer -> next_id >= 0)	{
 						if(m != next_id_peptide_pointer -> beg_edge_offset)	{
 							printf("peptide map does not match: edge %d frame %d map %d endpos %d next %d length %d m %d index %d %d\n",
@@ -391,7 +404,7 @@ if(len_tmpseq > max_length - 3)	{
 						}
 //printf("len_tmpseq %d\n", len_tmpseq);
 /*
-if(i == 1574368)	{
+if(i == 1583040)	{
 printf("tmpseq ");
 for(m = 0; m < len_tmpseq; m ++)	{
 	printf("%c", aalist[tmpseq[m]]);
@@ -515,7 +528,19 @@ void GraphPepTrav::GraphPep2Pro(void)
 		if(id_peptides[i].label == 1)	{
 			continue;
 		}
+/*
+if(i == 9431 || i == 11444)	{
+	printf("i %d start\n", i);
+}
+*/
 		id_peptide_pointer = &(id_peptides[i]);
+/*
+if(id_peptide_pointer -> beg_edge_index == 1571067)	{
+	printf("contok i %d edge index %d start_edge_offset %d end_edge_offset %d\n", i, id_peptides[i].beg_edge_index, id_peptides[i].beg_edge_offset, id_peptides[i].end_edge_offset);
+	printf("prev_id %d next_id\n", id_peptide_pointer -> prev_id, id_peptide_pointer -> next_id);
+}
+*/
+		n = i;
 		if(id_peptide_pointer -> prev_id <= 0)	{
 			if(id_peptide_pointer -> len_prev_seq > 0 && ckcutsite(id_peptide_pointer -> prev_seq[id_peptides[i].len_prev_seq - 1]) == 1)	{ // cut site
 				len_tmpseq = appendpep(tmpseq, len_tmpseq, id_peptide_pointer -> prev_seq, id_peptide_pointer -> len_prev_seq);
@@ -548,19 +573,18 @@ printf("\n");
 			if(id_peptides[n].len_next_seq > 0)	{
 				len_tmpseq = appendpep(tmpseq, len_tmpseq, id_peptides[n].next_seq, id_peptides[n].len_next_seq);
 			}
-			id_peptide_pointer -> label = 1;
-/*
-if(len_tmpseq > 1000)	{
+if(num_proteins == 8452)	{
 	printf("len_tmpseq %d\n", len_tmpseq);
-	getchar();
 }
+/*
 */
+			id_peptide_pointer -> label = 1;
 			seq_proteins[num_proteins] = (char *) smallapp::ckalloc((len_tmpseq + 1) * sizeof(char));
 			mark_proteins[num_proteins] = (char *) smallapp::ckalloc((len_tmpseq + 1) * sizeof(char));
 			len_proteins[num_proteins] = 0;
 			len_proteins[num_proteins] = appendpep(seq_proteins[num_proteins], len_proteins[num_proteins], tmpseq, len_tmpseq);
 /*
-if(i == 0)	{
+if(id_peptide_pointer -> beg_edge_index == 1571067)	{
 printf("num_proteins %d length %d proseq ", num_proteins, len_proteins[num_proteins]);
 for(m = 0; m < len_tmpseq; m ++)	{
 	printf("%c", aalist[tmpseq[m]]);
@@ -570,13 +594,13 @@ for(m = 0; m < len_proteins[num_proteins]; m ++)	{
 	printf("%c", aalist[seq_proteins[num_proteins][m]]);
 }
 printf("\n");
-}
 printf("num_proteins %d\n", num_proteins);
 for(j = 0; j < len_proteins[num_proteins]; j ++)	{
 	printf("%d ", markseq[j]);
 }
 printf("\n");
 getchar();
+}
 */
 			for(j = 0; j < len_proteins[num_proteins]; j ++)	{
 /*
@@ -623,7 +647,7 @@ void GraphPepTrav::TraverseGraph(void)
 	lastpep = (char *) smallapp::ckalloc(max_length * sizeof(char));
 
 	for(i = 0; i < num_id_peptides; i ++)	{
-		if(id_peptides[i].next_id == 0)	{
+		if(id_peptides[i].label == 0 && id_peptides[i].next_id == 0)	{
 			len_lastpep = 0;
 			start_edge = &edge[id_peptides[i].end_edge_index];
 /*
@@ -632,8 +656,13 @@ printf("start edge %d number peptides %d %d %d ...\n", id_peptides[i].end_edge_i
 */
 
 			depth = 0;
+/*
+if(start_edge -> index == 1571067)
+printf("okk edge %d end_edge_offset %d\n", start_edge -> index, id_peptides[i].end_edge_offset);
+*/
 			id_peptides[i].next_id = extract_next_peptides(start_edge, id_peptides[i].end_edge_offset, lastpep, &len_lastpep);
 /*
+if(i >= 1000)
 printf("edge %d next_id %d\n", i, id_peptides[i].next_id);
 */
 			if(id_peptides[i].next_id > 0)	{
@@ -647,6 +676,15 @@ printf("edge %d next_id %d\n", i, id_peptides[i].next_id);
 				id_peptides[id_peptides[i].next_id - 1].len_prev_seq = appendpep(id_peptides[id_peptides[i].next_id - 1].prev_seq,
 					 id_peptides[id_peptides[i].next_id - 1].len_prev_seq, lastpep, len_lastpep);
 			} else	{
+/*
+if(start_edge -> index == 1571067)	{
+	printf("i %d start_edge_offset %d end_edge_offset %d\n", i, id_peptides[i].beg_edge_offset, id_peptides[i].end_edge_offset);
+}
+*/
+/*
+if(i >= 1000)
+	printf("i %d start_edge_offset %d end_edge_offset %d\n", i, id_peptides[i].beg_edge_offset, id_peptides[i].end_edge_offset);
+*/
 				len_lastpep = 0;
 				id_peptides[i].next_id = -1;
 				len_lastpep = extract_next_peptides_same_edge(start_edge, id_peptides[i].end_edge_offset, lastpep, len_lastpep);
@@ -836,6 +874,11 @@ int GraphPepTrav::extract_next_peptides_same_edge(EDGE *inedge, int offset, char
 		if(tmppep[0] == 20)	{	// stop codon
 			break;
 		}
+/*
+if(inedge -> index == 1574100)	{
+	printf("%c", aalist[tmppep[0]]);
+}
+*/
 		len_lastseq = appendpep(lastseq, len_lastseq, tmppep, l);
 	}
 	return(len_lastseq);

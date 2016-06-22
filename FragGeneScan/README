@@ -15,7 +15,7 @@ Running the program
 ====================
 1.  To run FragGeneScan, 
 
-./run_FragGeneScan.pl -genome=[seq_file_name] -out=[output_file_name] -complete=[1 or 0] -train=[train_file_name]
+./run_FragGeneScan.pl -genome=[seq_file_name] -out=[output_file_name] -complete=[1 or 0] -train=[train_file_name] -thread=[num_thread]
 
 [seq_file_name]: sequence file name including the full path
 [output_file_name]: output file name including the full path
@@ -31,29 +31,32 @@ Running the program
 		   [454_30] for 454 pyrosequencing reads with about 3% error rate
 		   [illumina_5] for Illumina sequencing reads with about 0.5% error rate
 		   [illumina_10] for Illumina sequencing reads with about 1% error rate
-
-
+[num_thread]: number of thread used in FragGeneScan. Default 1.
 
 2. To test FragGeneScan with a complete genomic sequence,
 
-./run_FragGeneScan.pl -genome=./example/NC_000913.fna -out=./example/NC_000913.test  -complete=1  -train=complete
+./run_FragGeneScan.pl -genome=./example/NC_000913.fna -out=./example/NC_000913-fgs  -complete=1  -train=complete
 
 [NC_000913.fna]: this sequence file has the complete genomic sequence of E.coli
-
+(NCBI gene predictions for this genome are available under the same folder example/)
 
 
 3. To test FragGeneScan with sequencing reads,
 
-./run_FragGeneScan.pl -genome=./example/NC_000913-454.fna -out=./example/NC_000913-454.test  -complete=0  -train=454_10
+./run_FragGeneScan.pl -genome=./example/NC_000913-454.fna -out=./example/NC_000913-454-fgs  -complete=0  -train=454_10
 
 [NC_000913-454.fna]: this sequence file has simulated reads (pyrosequencing, average length = 400 bp and sequencing error = 1%) generated using Metasim
 
+For illumina reads, please use illumina_5 or illumina_10 as the train model.
 
+4. To test FragGeneScan with assembly contigs,
+./run_FragGeneScan.pl -genome=./example/contigs.fna -out=./example/contigs-fgs  -complete=1  -train=complete
 
+Note: -complete=1 & -train=complete are used as the parameters.
 
 Output
 ============
-Upon completion, FragGeneScan generates three files. 
+Upon completion, FragGeneScan generates four files. 
 
 1. The first file is "[output_file_name].out", which lists the coordinates of putative genes. This file consists of five columns (start position, end position, strand, frame, score).  For example,
 
@@ -107,6 +110,7 @@ SVVAALMAMNEHCGKPLNDTRLLALMGELEGRISGSIHYDNVAPCFLGGMQLMIEENDIISQQVPGFDEWLWVLAYPGIK
 AHGRHLAGFIHACYSRQPELAAKLMKDVIAEPYRERLLPGFRQARQAVAEIGAVASGISGSGPTLFALCDKPETAQRVADWLGKNYLQNQEGFVHICRLD
 TAGARVLEN
 
+4. [output_file_name].gff gene prediction results in gff format.
 
 
 License

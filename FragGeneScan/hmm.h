@@ -103,10 +103,10 @@ typedef struct {
 
 
 
-void get_prob_from_cg(HMM *hmm, TRAIN *train, char *O);
+int get_prob_from_cg(HMM *hmm, TRAIN *train, char *O); //return cg - 26 Ye April 16, 2016
 void get_train_from_file(char *filename, HMM *hmm_ptr, char *mfilename, char *mfilename1, char *nfilename, char *sfilename,char *pfilename,char *s1filename,char *p1filename, char *dfilename, TRAIN *train_ptr);
-void viterbi(HMM *hmm_ptr, char *O, FILE *out_filename, FILE *log_filename,FILE *dna_filename, char *head, int metagene, int format);
+void viterbi(HMM *hmm_ptr, TRAIN *train_ptr, char *O, FILE *out_filename, FILE *log_filename,FILE *dna_filename, char *head, int metagene, int cg, int format);
 void free_hmm(HMM *hmm);
-void get_protein(char *dna, char *protein, int strand);
+void get_protein(char *dna, char *protein, int strand, int whole_genome);
 void get_rc_dna(char *dna, char *dna1);
 void get_corrected_dna(char *dna, char *dna_f);
