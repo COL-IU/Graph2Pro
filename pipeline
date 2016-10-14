@@ -1,8 +1,5 @@
 #MG remove 500bp
-#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD6.500.contig
-#python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD3.500.contig
-##python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1611149-SD5MG-s2-63mer-k31-d1.contig > MG_SRR1611149-SD5MG-s2-63mer-k31-d1.500.contig
-python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1611146-SD7MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD7.500.contig
+python2.7 remove_500bp.py SRR1544596-SD6MG-s2-63mer-k31-d1.contig > MG_SD6.500.contig
 
 #Hybrid remove 500bp
 #python2.7 remove_500bp.py /data_omics/wastewater/Assembly-hybrid/SD3-s2-63mer-k31-d1.contig > /data/sujli/hybrid_SD3.500.contig
