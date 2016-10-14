@@ -1,0 +1,11 @@
+
+The example file size is too big to upload to github. Please refer to the link: 
+
+http://darwin.informatics.indiana.edu/Dbgraph/example/
+
+to download the example data. They included:
+1) Assembled contig : SRR1544596-SD6MG-s2-63mer-k31-d1.contig
+2) Edge file from graph: SRR1544596-SD6MG-s2-63mer-k31-d1.updated.edge
+3) Metaproteomics spectra file: SD6.mgf
+
+The pipeline to process the data is illustrated in the readme file. 
