@@ -1,3 +1,7 @@
+Graph2Pro: A graph-centric approach for metagenome-guided peptide and protein identification in metaproteomics
+
+Our method exploits the de Bruijn graph structure reported by metagenome assembly algorithms to generate a comprehensive database of protein sequences encoded
+
 step1: 
 The analysis pipeline starts with the step to remove the assembly has contigs shorter than 500bp for gene prediction FragGeneScan
 In this step, the script remove_500bp can be used. Usage for remove_500bp is 
