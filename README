@@ -1,71 +1,74 @@
 Graph2Pro: A graph-centric approach for metagenome-guided peptide and protein identification in metaproteomics
 
-Our method exploits the de Bruijn graph structure reported by metagenome assembly algorithms to generate a comprehensive database of protein sequences encoded
+Our method exploits the de Bruijn graph structure reported by metagenome assembly algorithms to generate a comprehensive database of protein sequences encoded.
 
-step1: 
+In the following, we illustrated each step in the pipeline for metaproteomics identification:
+
+Step1: 
 The analysis pipeline starts with the step to remove the assembly has contigs shorter than 500bp for gene prediction FragGeneScan
-In this step, the script remove_500bp can be used. Usage for remove_500bp is 
+In this step, the script remove_500bp.py can be used. 
+Usage for remove_500bp is 
 	python remove_500bp.py <input> > <output>
 Example:
-	python2.7 remove_500bp.py /data_omics/wastewater/Assembly-MG/SRR1544596-SD6MG-s2-63mer-k31-d1.contig > /data/sujli/MG_SD6.500.contig
+	python2.7 remove_500bp.py SRR1544596-SD6MG-s2-63mer-k31-d1.contig > MG_SD6.500.contig
 
-step2: 
+Step2: 
 Predict genes from contigs with length longer than 500 by FragGeneScan
-Usage of FragGeneScan :
+Usage for FragGeneScan :
 	FragGeneScan -s <contig> -o <output> -w 0/1 -t complete
 Example:
-	FragGeneScan -s /data/sujli/MG_SD3.500.contig -o /data/sujli/MG_SD3.500 -w 0 -t complete
-Output is MG_SD3.500.faa
+	FragGeneScan -s MG_SD6.500.contig -o MG_SD6.500 -w 0 -t complete
+Output is MG_SD6.500.faa
 
-step3:
+Step3:
 Predict peptides by DBGraph (1st round)
 Usage of DBGraph :
 	DBGraph2Pro -d <depth> -e <edge> -s <contig> -o <output>
 Example:
-	DBGraph2Pro -d 5 -e /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig -o /data/sujli/MG_SD3.contig-pep.fasta
+	DBGraph2Pro -d 5 -e SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s SRR1046369-SD3MG-s2-63mer-k31-d1.contig -o MG_SD3.contig-pep.fasta
 Output is MG_SD3.contig-pep.fasta
 
-step4:
-Create decoy database for DBGraph2Pro output by fixing the C-term residue. The script is createFixedReverseKR.py. 
-Usage of createFixedReverseKR.py
+Step4:
+Create decoy database for DBGraph2Pro output by fixing the C-term residue K/R. The script is createFixedReverseKR.py. 
+Usage of createFixedReverseKR.py :
 	python createFixedReverseKR.py <input.fasta>
 Example:
 	python createFixedReverseKR.py MG_SD3.contig-pep.fasta
 Output is MG_SD3.contig-pep.fixedKR.fasta
 
 
-step5:
+Step5:
 Searching spectra against MG_SD3.500.faa and MG_SD3.contig-pep.fixedKR.fasta by MSGF+
-Usage of MSGF+
-	java -Xmx32g -jar MSGFPlus.jar -s wastewater/SD3.mgf -o wastewater/SD3.hybrid.bp.fixedKR.mzid -d database/wastewater/hybrid_SD3-s2-63mer-k31-d1.contig-pep.fixedKR.fasta -inst 1 -t 15ppm -ti -1,2 -mod Mods_normal.txt -ntt 2 -tda 0 -maxCharge 7 -minCharge 1 -addFeatures 1 -n 1
-	java -Xmx16g -cp MSGFPlus.jar edu.ucsd.msjava.ui.MzIDToTsv -i wastewater/SD3.hybrid.bp.fixedKR.mzid -showDecoy 1
+Usage of MSGF+ :
+	java -Xmx32g -jar MSGFPlus.jar -s SD3.mgf -o SD3.hybrid.bp.fixedKR.mzid -d hybrid_SD3-s2-63mer-k31-d1.contig-pep.fixedKR.fasta -inst 1 -t 15ppm -ti -1,2 -mod Mods_normal.txt -ntt 2 -tda 0 -maxCharge 7 -minCharge 1 -addFeatures 1 -n 1
+	java -Xmx16g -cp MSGFPlus.jar edu.ucsd.msjava.ui.MzIDToTsv -i SD3.hybrid.bp.fixedKR.mzid -showDecoy 1
 Output is SD3.hybrid.bp.fixedKR.tsv
 
-step6:
-parse the results to get the 5% FDR results for the 1st round by use parseFDR.py
-Usage of parseFDR.py
+Step6:
+Parse the results to get the 5% FDR results for the 1st round by use parseFDR.py
+Usage of parseFDR.py :
 	python parseFDR.py <input> <FDRLevel>
 Example:
 	python parseFDR.py SD3.hybrid.bp.fixedKR.tsv 0.05
 Output is SD3.hybrid.bp.fixedKR.tsv.0.05.tsv
 
-step7:
+Step7:
 Combine the FGS and the DBGraph Database searching results by combineFragandDBGraph.py
 Usage:
 	python combineFragandDBGraph.py <MS result from FGS> <FGS NA sequence> <FGS AA sequence> <MSResult from DBGraph> <DBGraphDatabase> <contig> <output>
 Output:
-	python combineFragandDBGraph.py ../wastewater/SD3.mg.frag.tsv.0.05.tsv ../database/wastewater/MG_SD3.500.ffn ../database/wastewater/MG_SD3.500.faa ../wastewater/SD3.mg.bp.fixedKR.tsv.0.05.tsv ../database/wastewater/MG_SD3.contig-pep.fasta ../database/wastewater/MG_SD3.500.contig SD3.mg.combine.0.05.tsv
+	python combineFragandDBGraph.py SD3.mg.frag.tsv.0.05.tsv MG_SD3.500.ffn MG_SD3.500.faa SD3.mg.bp.fixedKR.tsv.0.05.tsv MG_SD3.contig-pep.fasta MG_SD3.500.contig SD3.mg.combine.0.05.tsv
 
-step8:
+Step8:
 Based on the combined peptides result, it use DBGraphPep2Pro to tranverse the proteins sequences. 
+Usage:
+        DBGraphPep2Pro -e <edge> -s <contig> -p <peptides> -o <protein.fasta>
 Example:
-	DBGraphPep2Pro -e /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s /data_omics/wastewater/Assembly-MG/SRR1046369-SD3MG-s2-63mer-k31-d1.contig -p SD3.mg.combine.0.05.tsv -o /data/sujli/SD3_mg_DBGraphPep2Pro_5.fasta
+	DBGraphPep2Pro -e SRR1046369-SD3MG-s2-63mer-k31-d1.updated.edge -s SRR1046369-SD3MG-s2-63mer-k31-d1.contig -p SD3.mg.combine.0.05.tsv -o SD3_mg_DBGraphPep2Pro_5.fasta
 
-step9:
-Searching the spectra against the database outputed from DBGraphPep2Pro by MSGF+
+Step9:
+Searching the spectra against the database outputed from DBGraphPep2Pro by MSGF+ and use false discovery rate control to get the final results.
 
-step10:
-by parseFDR.py to get the final results.
 
 
 
