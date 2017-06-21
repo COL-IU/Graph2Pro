@@ -28,6 +28,7 @@ class seqgraph {
 		void loadsoap(bool SOAP2, char *edgefile, char *edgeseqfile);
 		void loadFastG(char *edgeseqfile);
 		void index_vertex(void);
+		void lindex_vertex(void);
 		void print_vertex_degree(void);
 };
 

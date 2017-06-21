@@ -151,7 +151,7 @@ void seqgraph::loadFastG(char *edgeseqfile)
         vindex[hashtablesize] = num_vertex;
 
         cout<<"index vertex..."<<endl;
-        index_vertex();
+        lindex_vertex();
 
         for(i = hashtablesize - 1; i >= 0; i --)        {
                 if(vindex[i] == 0)      {
@@ -171,6 +171,32 @@ void seqgraph::index_vertex(void)
 	printf("index %ld hashv %d\n", vertex[0].index, hashv);
 	for(int i = 1; i < num_vertex; i ++)	{
 		hashv = vertex[i].index >> shift;
+		if(vindex[hashv] == 0)	{
+			vindex[hashv] = i + 1;
+		}
+	}
+}
+
+void seqgraph::lindex_vertex(void)
+{
+	int hashv;
+	int shift = (kmersize - hashw) * 2;
+	printf("kmer %d hashw %d shift %d\n", kmersize, hashw, shift);
+
+	if(shift >= 128)	{
+		hashv = vertex[0].lindex.bits[1] >> (shift - 128);
+	} else	{
+		hashv = vertex[0].lindex.bits[0] >> shift;
+	}
+	vindex[hashv] = 1;
+	//cout<<"index "<<vertex[0].index<<" hashv "<<hashv<<endl;
+	printf("index %ld %ld hashv %d\n", vertex[0].lindex.bits[0], vertex[0].lindex.bits[1], hashv);
+	for(int i = 1; i < num_vertex; i ++)	{
+		if(shift >= 128)	{
+			int hashv = vertex[0].lindex.bits[1] >> (shift - 128);
+		} else	{
+			int hashv = vertex[0].lindex.bits[0] >> shift;
+		}
 		if(vindex[hashv] == 0)	{
 			vindex[hashv] = i + 1;
 		}

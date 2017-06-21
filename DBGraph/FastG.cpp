@@ -31,7 +31,7 @@ int FastG::readedge(char *edgeseqfile, EDGE *edge, VERTEX *vertex, int *edgeinde
 {
 	int	i, j, k, l, n, m;
 	int	num_vertex;
-	__int128_t	c1, c2;
+	uint256_t	c1, c2;
 	char	*seq;
 	int	seqlen, max_len;
 	int	len, strand;
@@ -176,7 +176,7 @@ printf("j %d edgeindex %d %d\n", j, edgeindex[2 * j], edgeindex[2 * j + 1]);
 			}
 			if(outvertex < 0)	{
 				outvertex = num_vertex;
-				vertex[num_vertex].index = str2code(&(edge[startedge].seq[edge[startedge].length - kmersize]), kmersize);
+				vertex[num_vertex].lindex = str2code(&(edge[startedge].seq[edge[startedge].length - kmersize]), kmersize);
 				num_vertex ++;
 			}
 			edge[startedge].nodeindex[1] = outvertex;
@@ -225,7 +225,7 @@ printf("j %d edgeindex %d %d\n", j, edgeindex[2 * j], edgeindex[2 * j + 1]);
 				startedge = edgeindex[2 * j];
 			}
 			if(edge[startedge].nodeindex[0] < 0)	{
-				vertex[num_vertex].index = str2code(edge[startedge].seq, kmersize);
+				vertex[num_vertex].lindex = str2code(edge[startedge].seq, kmersize);
 				edge[startedge].nodeindex[0] = num_vertex;
 				vertex[num_vertex].nextedge = soap::add_edge_to_vertex(&edge[startedge], vertex[num_vertex].nextedge);
 				vertex[num_vertex].outdegree ++;
@@ -275,15 +275,19 @@ int FastG::get_next_edge(char *tmpstr, int *start, int end, int *edgeindex)
 	}
 }
 
-__int128_t FastG::str2code(char *seq, int kmersize)
+uint256_t FastG::str2code(char *seq, int kmersize)
 {
 	int	i, k, l;
-	__int128_t	code;
+	uint256_t	code;
 
-	code = 0;
+	code.bits[0] = code.bits[1] = 0;
+	k = 0;
 	for(i = 0; i < kmersize; i ++)	{
-		code *= 4;
-		code += seq[i];
+		code.bits[k] *= 4;
+		code.bits[k] += seq[i];
+		if(i == 64)	{
+			k ++;
+		} 
 	}
 	return(code);
 }

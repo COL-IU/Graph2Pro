@@ -98,9 +98,14 @@ typedef struct edgemap {
 	int	*num_id_pep;
 } EDGEMAP;
 
+typedef struct u256bit {
+	__int128_t	bits[2];
+} uint256_t;
+
 typedef struct vertex {
 	unsigned int	tag : 1; // tagging visited vertices
 	__int128_t	index;
+	uint256_t	lindex;
 	int	indegree, outdegree;
 	EDGELIST	*lastedge;
 	EDGELIST	*nextedge;
